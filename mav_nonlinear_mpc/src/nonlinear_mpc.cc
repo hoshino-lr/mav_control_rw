@@ -381,7 +381,9 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
     ROS_WARN_STREAM("Nonlinear MPC: Solver failed with status: " << acado_status);
     ROS_WARN("reinitializing...");
     initializeAcadoSolver (x_0);
-    *ref_attitude_thrust << 0, 0, 0, kGravity * mass_;
+    double thrust_ref =  kGravity * mass_;
+//    *ref_attitude_thrust << 0, 0, 0, kGravity * mass_;
+    *ref_attitude_thrust << 0, 0, 0, thrust_ref * 0.04619828;
     return;
   }
 
@@ -411,8 +413,8 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
     yaw_rate_cmd = -yaw_rate_limit_;
   }
 
-  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, mass_ * thrust_ref);
-
+//  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, mass_ * thrust_ref);
+  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, thrust_ref * 0.04619828 * mass_);
   double diff_time = (ros::WallTime::now() - starting_time).toSec();
 
   if (verbose_) {

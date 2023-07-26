@@ -47,10 +47,12 @@ MavControlInterfaceImpl::MavControlInterfaceImpl(ros::NodeHandle& nh, ros::NodeH
       mav_msgs::default_topics::COMMAND_TRAJECTORY, 1,
       &MavControlInterfaceImpl::CommandTrajectoryCallback, this);
 
-  odometry_subscriber_ = nh_.subscribe(mav_msgs::default_topics::ODOMETRY, 1,
-                                       &MavControlInterfaceImpl::OdometryCallback, this,
-                                       ros::TransportHints().tcpNoDelay());
-
+//  odometry_subscriber_ = nh_.subscribe(mav_msgs::default_topics::ODOMETRY, 1,
+//                                       &MavControlInterfaceImpl::OdometryCallback, this,
+//                                       ros::TransportHints().tcpNoDelay());
+  odometry_subscriber_ = nh_.subscribe("/mavros/local_position/odom", 1,
+                                         &MavControlInterfaceImpl::OdometryCallback, this,
+                                         ros::TransportHints().tcpNoDelay());
   rc_interface_->registerUpdatedCallback(&MavControlInterfaceImpl::RcUpdatedCallback, this);
 
   takeoff_server_ = nh.advertiseService("takeoff", &MavControlInterfaceImpl::TakeoffCallback, this);

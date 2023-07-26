@@ -30,7 +30,7 @@
 #include <boost/msm/front/functor_row.hpp>
 #include <boost/msm/front/euml/common.hpp>
 #include <boost/msm/front/euml/operator.hpp>
-
+#include <mavros_msgs/AttitudeTarget.h>
 #include <mav_msgs/conversions.h>
 #include <mav_msgs/eigen_mav_msgs.h>
 #include <ros/ros.h>
@@ -208,6 +208,7 @@ private:
   std::string reference_frame_id_;
   std::shared_ptr<PositionControllerInterface> controller_;
   ros::Publisher command_publisher_;
+  ros::Publisher command_publisher_px4_;
   ros::Publisher state_info_publisher_;
 
   tf::TransformBroadcaster transform_broadcaster_;
@@ -219,6 +220,7 @@ private:
   mav_msgs::EigenTrajectoryPointDeque current_reference_queue_;
 
   void PublishAttitudeCommand(const mav_msgs::EigenRollPitchYawrateThrust& command) const;
+  void PublishAttitudeCommand_px4(const mav_msgs::EigenRollPitchYawrateThrust& command) const;
   void PublishStateInfo(const std::string& info);
   void PublishCurrentReference();
   void PublishPredictedState();
@@ -293,6 +295,7 @@ private:
       constexpr double thrust_below_hovering_factor = 0.8;
       command.thrust.z() = (evt.rc_data.left_up_down + 1.0) * fsm.controller_->getMass() * 9.81 * thrust_below_hovering_factor;
       fsm.PublishAttitudeCommand(command);
+      fsm.PublishAttitudeCommand_px4(command);
     }
   };
 
@@ -343,7 +346,8 @@ private:
     {
       mav_msgs::EigenRollPitchYawrateThrust command;
       fsm.controller_->calculateRollPitchYawrateThrustCommand(&command);
-      fsm.PublishAttitudeCommand(command);
+//      fsm.PublishAttitudeCommand(command);
+      fsm.PublishAttitudeCommand_px4(command);
       fsm.PublishCurrentReference();
       fsm.PublishPredictedState();
     }

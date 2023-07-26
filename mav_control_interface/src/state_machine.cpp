@@ -34,6 +34,8 @@ StateMachineDefinition::StateMachineDefinition(const ros::NodeHandle& nh, const 
   command_publisher_ = nh_.advertise<mav_msgs::RollPitchYawrateThrust>(
       mav_msgs::default_topics::COMMAND_ROLL_PITCH_YAWRATE_THRUST, 1);
 
+  command_publisher_px4_ = nh_.advertise<mavros_msgs::AttitudeTarget>(
+          "/mavros/setpoint_raw/attitude", 1);
   current_reference_publisher_ = nh_.advertise<trajectory_msgs::MultiDOFJointTrajectory>(
       "command/current_reference", 1);
 
@@ -64,6 +66,21 @@ void StateMachineDefinition::PublishAttitudeCommand (
   msg->header.stamp = ros::Time::now();  // TODO(acmarkus): get from msg
   mav_msgs::msgRollPitchYawrateThrustFromEigen(command, msg.get());
   command_publisher_.publish(msg);
+}
+
+void StateMachineDefinition::PublishAttitudeCommand_px4 (
+        const mav_msgs::EigenRollPitchYawrateThrust& command) const
+{
+    mavros_msgs::AttitudeTargetPtr msg(new mavros_msgs::AttitudeTarget);
+    geometry_msgs::Quaternion msg_q;
+    msg_q = tf::createQuaternionMsgFromRollPitchYaw(command.roll, command.pitch, 0);
+    msg->type_mask = 0;
+    msg->orientation = msg_q;
+    msg->body_rate.z = command.yaw_rate;
+    msg->thrust = std::max(0.0, command.thrust.z());
+    msg->header.stamp = ros::Time::now();  // TODO(acmarkus): get from msg
+//    mav_msgs::msgRollPitchYawrateThrustFromEigen(command, msg.get());
+    command_publisher_px4_.publish(msg);
 }
 
 void StateMachineDefinition::PublishStateInfo(const std::string& info)
