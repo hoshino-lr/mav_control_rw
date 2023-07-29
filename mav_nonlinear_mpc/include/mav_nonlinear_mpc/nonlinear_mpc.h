@@ -189,6 +189,10 @@ class NonlinearModelPredictiveControl
   double thrust_min_;
   double thrust_max_;
 
+  // throttle scaling
+  double thrust_k;
+  double thrust_b;
+
   // reference queue
   MPCQueue mpc_queue_;
   Vector3dDeque position_ref_, velocity_ref_, acceleration_ref_;

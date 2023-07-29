@@ -147,7 +147,14 @@ void NonlinearModelPredictiveControl::initializeParameters()
     ROS_ERROR("prediction_sampling_time in nonlinear MPC is not loaded from ros parameter server");
     abort();
   }
-
+  if (!private_nh_.getParam("thrust_k", thrust_k)) {
+      ROS_ERROR("prediction_sampling_time in nonlinear MPC is not loaded from ros parameter server");
+      abort();
+  }
+  if (!private_nh_.getParam("thrust_b", thrust_b)) {
+      ROS_ERROR("prediction_sampling_time in nonlinear MPC is not loaded from ros parameter server");
+      abort();
+  }
   for (int i = 0; i < ACADO_N + 1; i++) {
     acado_online_data_.block(i, 0, 1, ACADO_NOD) << roll_time_constant_, roll_gain_, pitch_time_constant_, pitch_gain_, drag_coefficients_(
         0), drag_coefficients_(1), 0, 0, 0;
@@ -383,7 +390,8 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
     initializeAcadoSolver (x_0);
     double thrust_ref =  kGravity * mass_;
 //    *ref_attitude_thrust << 0, 0, 0, kGravity * mass_;
-    *ref_attitude_thrust << 0, 0, 0, thrust_ref * 0.04619828;
+//    *ref_attitude_thrust << 0, 0, 0, thrust_ref * 0.04619828;
+    *ref_attitude_thrust << 0, 0, 0, thrust_ref * thrust_k + thrust_b;
     return;
   }
 
