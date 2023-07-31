@@ -148,11 +148,11 @@ void NonlinearModelPredictiveControl::initializeParameters()
     abort();
   }
   if (!private_nh_.getParam("thrust_k", thrust_k)) {
-      ROS_ERROR("prediction_sampling_time in nonlinear MPC is not loaded from ros parameter server");
+      ROS_ERROR("thrust_k in nonlinear MPC is not loaded from ros parameter server");
       abort();
   }
   if (!private_nh_.getParam("thrust_b", thrust_b)) {
-      ROS_ERROR("prediction_sampling_time in nonlinear MPC is not loaded from ros parameter server");
+      ROS_ERROR("thrust_b in nonlinear MPC is not loaded from ros parameter server");
       abort();
   }
   for (int i = 0; i < ACADO_N + 1; i++) {
@@ -343,7 +343,7 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
   }
 
   double current_yaw = odometry_.getYaw();
-
+  double current_z = odometry_.position_W(2);
   Eigen::Vector3d estimated_disturbances_B =
       odometry_.orientation_W_B.toRotationMatrix().transpose() * estimated_disturbances;
 
@@ -390,12 +390,15 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
     initializeAcadoSolver (x_0);
     double thrust_ref =  kGravity * mass_;
 //    *ref_attitude_thrust << 0, 0, 0, kGravity * mass_;
-//    *ref_attitude_thrust << 0, 0, 0, thrust_ref * 0.04619828;
     *ref_attitude_thrust << 0, 0, 0, thrust_ref * thrust_k + thrust_b;
     return;
   }
-
-  command_roll_pitch_yaw_thrust_ << roll_ref, pitch_ref, yaw_ref_.front(), thrust_ref;
+  if (current_z > 0.35) {
+      command_roll_pitch_yaw_thrust_ << roll_ref, pitch_ref, yaw_ref_.front(), thrust_ref;
+  }
+  else {
+      command_roll_pitch_yaw_thrust_ << 0, 0, 0, thrust_ref;
+  }
 
   state_ = Eigen::Map<Eigen::Matrix<double, ACADO_N + 1, ACADO_NX, Eigen::RowMajor>>(
       acadoVariables.x);
@@ -422,7 +425,13 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
   }
 
 //  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, mass_ * thrust_ref);
-  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, thrust_ref * 0.04619828 * mass_);
+  if (current_z > 0.35) {
+      *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, thrust_ref * mass_ * thrust_k + thrust_b);
+  }
+  else {
+      *ref_attitude_thrust = Eigen::Vector4d(0, 0, 0, thrust_ref * mass_ * thrust_k + thrust_b);
+  }
+
   double diff_time = (ros::WallTime::now() - starting_time).toSec();
 
   if (verbose_) {

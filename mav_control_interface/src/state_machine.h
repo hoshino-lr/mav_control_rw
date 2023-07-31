@@ -346,7 +346,7 @@ private:
     {
       mav_msgs::EigenRollPitchYawrateThrust command;
       fsm.controller_->calculateRollPitchYawrateThrustCommand(&command);
-//      fsm.PublishAttitudeCommand(command);
+      fsm.PublishAttitudeCommand(command);
       fsm.PublishAttitudeCommand_px4(command);
       fsm.PublishCurrentReference();
       fsm.PublishPredictedState();
