@@ -33,7 +33,8 @@ StateMachineDefinition::StateMachineDefinition(const ros::NodeHandle& nh, const 
 {
   command_publisher_ = nh_.advertise<mav_msgs::RollPitchYawrateThrust>(
       mav_msgs::default_topics::COMMAND_ROLL_PITCH_YAWRATE_THRUST, 1);
-
+//  command_publisher_px4_ = nh_.advertise<mavros_msgs::AttitudeTarget>(
+//        "/uav/setpoint_raw/attitude", 1);
   command_publisher_px4_ = nh_.advertise<mavros_msgs::AttitudeTarget>(
           "/mavros/setpoint_raw/attitude", 1);
   current_reference_publisher_ = nh_.advertise<trajectory_msgs::MultiDOFJointTrajectory>(
