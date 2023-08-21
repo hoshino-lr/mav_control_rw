@@ -37,7 +37,7 @@ r_thrust : 1
 
 roll_max: deg(25.0)
 pitch_max: deg(25.0)
-thrust_min: 5
+thrust_min: 5.5
 thrust_max: 12.5
 
 K_yaw: 1.8
@@ -52,4 +52,3 @@ enable_integrator : true
 
 sampling_time: 0.02    #IMPORTANT: set this equal to the rate of odometry msg
 prediction_sampling_time: 0.10
-

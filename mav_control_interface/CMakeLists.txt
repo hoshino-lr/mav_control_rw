@@ -3,6 +3,8 @@ project(mav_control_interface)
 
 find_package(catkin REQUIRED)
 find_package(catkin_simple REQUIRED)
+find_package(mavros REQUIRED)
+INCLUDE_DIRECTORIES(${mavros_INCLUDE_DIRS})
 catkin_simple()
 
 add_definitions(-std=c++11)
@@ -10,6 +12,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(Eigen REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS})
+
 
 set(SOURCE_FILES
   src/mav_control_interface.cpp

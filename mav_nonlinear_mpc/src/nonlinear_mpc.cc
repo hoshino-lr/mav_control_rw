@@ -393,7 +393,7 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
     *ref_attitude_thrust << 0, 0, 0, thrust_ref * thrust_k + thrust_b;
     return;
   }
-  if (current_z > 0.35) {
+  if (current_z > 0.2) {
       command_roll_pitch_yaw_thrust_ << roll_ref, pitch_ref, yaw_ref_.front(), thrust_ref;
   }
   else {
@@ -425,7 +425,7 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
   }
 
 //  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, mass_ * thrust_ref);
-  if (current_z > 0.35) {
+  if (current_z > 0.2) {
       *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, thrust_ref * mass_ * thrust_k + thrust_b);
   }
   else {
