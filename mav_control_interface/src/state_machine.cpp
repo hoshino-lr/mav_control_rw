@@ -74,7 +74,7 @@ void StateMachineDefinition::PublishAttitudeCommand_px4 (
 {
     mavros_msgs::AttitudeTargetPtr msg(new mavros_msgs::AttitudeTarget);
     geometry_msgs::Quaternion msg_q;
-    msg_q = tf::createQuaternionMsgFromRollPitchYaw(command.roll, command.pitch, 0);
+    msg_q = tf::createQuaternionMsgFromRollPitchYaw(command.roll, command.pitch, command.yaw);
     msg->type_mask = 0;
     msg->orientation = msg_q;
     msg->body_rate.z = command.yaw_rate;

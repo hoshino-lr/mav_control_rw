@@ -129,7 +129,7 @@ class NonlinearModelPredictiveControl
   void setCommandTrajectory(const mav_msgs::EigenTrajectoryPointDeque& command_trajectory);
 
   // compute control input
-  void calculateRollPitchYawrateThrustCommand(Eigen::Vector4d* ref_attitude_thrust);
+  void calculateRollPitchYawrateThrustCommand(Eigen::VectorXd * ref_attitude_thrust);
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
  private:

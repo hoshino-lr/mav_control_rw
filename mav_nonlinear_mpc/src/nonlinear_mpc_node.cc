@@ -118,12 +118,13 @@ bool NonLinearModelPredictiveControllerNode::calculateAttitudeThrustCommand(
 }
 
 bool NonLinearModelPredictiveControllerNode::calculateRollPitchYawrateThrustCommand(mav_msgs::EigenRollPitchYawrateThrust* attitude_thrust_command){
-  Eigen::Vector4d rpy_thrust;
+  Eigen::VectorXd rpy_thrust;
   nonlinear_mpc_.calculateRollPitchYawrateThrustCommand(&rpy_thrust);
   attitude_thrust_command->roll = rpy_thrust(0);
   attitude_thrust_command->pitch = rpy_thrust(1);
-  attitude_thrust_command->yaw_rate = rpy_thrust(2);
-  attitude_thrust_command->thrust.z() = rpy_thrust(3);
+  attitude_thrust_command->yaw = rpy_thrust(2);
+  attitude_thrust_command->yaw_rate = rpy_thrust(3);
+  attitude_thrust_command->thrust.z() = rpy_thrust(4);
   return true;
 }
 
