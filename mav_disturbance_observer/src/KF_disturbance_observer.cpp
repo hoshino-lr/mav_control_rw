@@ -261,6 +261,7 @@ void KFDisturbanceObserver::loadROSParams()
     H_.insert(i, i) = 1.0;
   }
 
+    ROS_INFO_STREAM("H_: \n" << H_);
   for (int i = 0; i < 3; i++) {
     initial_state_covariance_(i) = P0_position;
     initial_state_covariance_(i + 3) = P0_velocity;
@@ -285,7 +286,7 @@ void KFDisturbanceObserver::loadROSParams()
   omega_limit_ = omega_limit_map;
 
   F_.makeCompressed();
-
+  ROS_INFO_STREAM("F_: \n" << F_);
   drag_coefficients_matrix_.setZero();
   for (int i = 0; i < 3; i++) {
     drag_coefficients_matrix_(i, i) = temporary_drag.at(i);

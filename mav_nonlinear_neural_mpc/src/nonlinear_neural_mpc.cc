@@ -30,15 +30,14 @@
 
 #include <tf/transform_datatypes.h>
 
-#include <mav_nonlinear_mpc/nonlinear_mpc.h>
-
+#include <mav_nonlinear_neural_mpc/nonlinear_neural_mpc.h>
 
 namespace mav_control {
 
-constexpr double NonlinearModelPredictiveControl::kGravity;
-constexpr int NonlinearModelPredictiveControl::kDisturbanceSize;
+constexpr double NeuralNonlinearModelPredictiveControl::kGravity;
+constexpr int NeuralNonlinearModelPredictiveControl::kDisturbanceSize;
 
-NonlinearModelPredictiveControl::NonlinearModelPredictiveControl(const ros::NodeHandle& nh,
+NeuralNonlinearModelPredictiveControl::NeuralNonlinearModelPredictiveControl(const ros::NodeHandle& nh,
                                                                              const ros::NodeHandle& private_nh)
     : nh_(nh),
       private_nh_(private_nh),
@@ -63,27 +62,29 @@ NonlinearModelPredictiveControl::NonlinearModelPredictiveControl(const ros::Node
   referenceN_.setZero();
 
   reset_integrator_service_server_ = nh_.advertiseService(
-          "reset_integrator", &NonlinearModelPredictiveControl::resetIntegratorServiceCallback, this);
+          "reset_integrator", &NeuralNonlinearModelPredictiveControl::resetIntegratorServiceCallback, this);
 
+  _external_force_sub_ = nh_.subscribe("external_force", 1,
+                                       &NeuralNonlinearModelPredictiveControl::externalForceCallback, this);
   initializeParameters();
 
   mpc_queue_.initializeQueue(sampling_time_, prediction_sampling_time_);
 
 }
 
-NonlinearModelPredictiveControl::~NonlinearModelPredictiveControl()
+NeuralNonlinearModelPredictiveControl::~NeuralNonlinearModelPredictiveControl()
 {
 
 }
 
-bool NonlinearModelPredictiveControl::resetIntegratorServiceCallback(std_srvs::Empty::Request &req,
+bool NeuralNonlinearModelPredictiveControl::resetIntegratorServiceCallback(std_srvs::Empty::Request &req,
                                                                            std_srvs::Empty::Response &res)
 {
   position_error_integration_.setZero();
   return true;
 }
 
-void NonlinearModelPredictiveControl::initializeParameters()
+void NeuralNonlinearModelPredictiveControl::initializeParameters()
 {
   std::vector<double> drag_coefficients;
 
@@ -172,7 +173,7 @@ void NonlinearModelPredictiveControl::initializeParameters()
   ROS_INFO("Nonlinear MPC: initialized correctly");
 }
 
-void NonlinearModelPredictiveControl::applyParameters()
+void NeuralNonlinearModelPredictiveControl::applyParameters()
 {
   W_.block(0, 0, 3, 3) = q_position_.asDiagonal();
   W_.block(3, 3, 3, 3) = q_velocity_.asDiagonal();
@@ -204,7 +205,7 @@ void NonlinearModelPredictiveControl::applyParameters()
   }
 }
 
-void NonlinearModelPredictiveControl::setOdometry(const mav_msgs::EigenOdometry& odometry)
+void NeuralNonlinearModelPredictiveControl::setOdometry(const mav_msgs::EigenOdometry& odometry)
 {
   static mav_msgs::EigenOdometry previous_odometry = odometry;
 
@@ -254,13 +255,13 @@ void NonlinearModelPredictiveControl::setOdometry(const mav_msgs::EigenOdometry&
   previous_odometry.orientation_W_B = odometry.orientation_W_B;
 }
 
-void NonlinearModelPredictiveControl::setCommandTrajectoryPoint(
+void NeuralNonlinearModelPredictiveControl::setCommandTrajectoryPoint(
     const mav_msgs::EigenTrajectoryPoint& command_trajectory)
 {
   mpc_queue_.insertReference(command_trajectory);
 }
 
-void NonlinearModelPredictiveControl::setCommandTrajectory(
+void NeuralNonlinearModelPredictiveControl::setCommandTrajectory(
     const mav_msgs::EigenTrajectoryPointDeque& command_trajectory)
 {
   int array_size = command_trajectory.size();
@@ -270,8 +271,18 @@ void NonlinearModelPredictiveControl::setCommandTrajectory(
   mpc_queue_.insertReferenceTrajectory(command_trajectory);
 }
 
+void NeuralNonlinearModelPredictiveControl::setExternalDisturbance(const Eigen::Vector3d &disturbance) {
+   _external_force_ << disturbance(0) / mass_, disturbance(1) / mass_, disturbance(2) / mass_;
+}
 
-void NonlinearModelPredictiveControl::initializeAcadoSolver(Eigen::VectorXd x0)
+void NeuralNonlinearModelPredictiveControl::externalForceCallback(const geometry_msgs::Vector3 &external_force) {
+
+    Eigen::Vector3d external_force_;
+    external_force_ << external_force.x, external_force.y, external_force.z;
+    this->setExternalDisturbance(external_force_);
+}
+
+void NeuralNonlinearModelPredictiveControl::initializeAcadoSolver(Eigen::VectorXd x0)
 {
   for (int i = 0; i < ACADO_N + 1; i++) {
     state_.block(i, 0, 1, ACADO_NX) << x0.transpose();
@@ -287,7 +298,7 @@ void NonlinearModelPredictiveControl::initializeAcadoSolver(Eigen::VectorXd x0)
       referenceN_.transpose();
 }
 
-void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
+void NeuralNonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
     Eigen::VectorXd* ref_attitude_thrust)
 {
   assert(ref_attitude_thrust != nullptr);
@@ -319,7 +330,8 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
   disturbance_observer_.getEstimatedState(&KF_estimated_state);
 
   if (enable_offset_free_ == true) {
-    estimated_disturbances = KF_estimated_state.segment(12, kDisturbanceSize);
+      estimated_disturbances = _external_force_;
+//    estimated_disturbances = KF_estimated_state.segment(12, kDisturbanceSize);
   } else {
     estimated_disturbances.setZero(kDisturbanceSize);
   }
@@ -453,7 +465,7 @@ void NonlinearModelPredictiveControl::calculateRollPitchYawrateThrustCommand(
 
 }
 
-Eigen::MatrixXd NonlinearModelPredictiveControl::solveCARE(Eigen::MatrixXd Q, Eigen::MatrixXd R)
+Eigen::MatrixXd NeuralNonlinearModelPredictiveControl::solveCARE(Eigen::MatrixXd Q, Eigen::MatrixXd R)
 {
   // Define system matrices
   Eigen::MatrixXd A;
@@ -507,7 +519,7 @@ Eigen::MatrixXd NonlinearModelPredictiveControl::solveCARE(Eigen::MatrixXd Q, Ei
   return U11.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(U21).transpose();
 }
 
-bool NonlinearModelPredictiveControl::getCurrentReference(
+bool NeuralNonlinearModelPredictiveControl::getCurrentReference(
     mav_msgs::EigenTrajectoryPoint* reference) const
 {
   assert(reference != nullptr);
@@ -520,7 +532,7 @@ bool NonlinearModelPredictiveControl::getCurrentReference(
   return true;
 }
 
-bool NonlinearModelPredictiveControl::getCurrentReference(
+bool NeuralNonlinearModelPredictiveControl::getCurrentReference(
     mav_msgs::EigenTrajectoryPointDeque* reference) const
 {
   assert(reference != nullptr);
@@ -538,7 +550,7 @@ bool NonlinearModelPredictiveControl::getCurrentReference(
   return true;
 }
 
-bool NonlinearModelPredictiveControl::getPredictedState(
+bool NeuralNonlinearModelPredictiveControl::getPredictedState(
     mav_msgs::EigenTrajectoryPointDeque* predicted_state) const
 {
   assert(predicted_state != nullptr);
@@ -564,5 +576,7 @@ bool NonlinearModelPredictiveControl::getPredictedState(
 
   return true;
 }
+
+
 
 }
