@@ -11,14 +11,15 @@
 #==================================================================================================================
 
 ## Controller Parameters:
-mass: 1.112
-roll_time_constant: 0.176
-roll_gain: 2.1
-pitch_time_constant: 0.176
-pitch_gain: 2.1
+mass: 1.00
+roll_time_constant: 0.08
+roll_gain: 1.05
+pitch_time_constant: 0.08
+pitch_gain: 1.05
 linear_drag_coefficients: [0.02, 0.02, 0]
-thrust_k: 0.05647
-thrust_b: -0.12
+thrust_cmd: 0.04106
+thrust_battery: -0.07545
+thrust_constant: 0.8557
 # dynamic config default values:
 q_x : 80
 q_y : 80
@@ -35,10 +36,10 @@ r_roll  : 50
 r_pitch : 50
 r_thrust : 1
 
-roll_max: deg(25.0)
-pitch_max: deg(25.0)
-thrust_min: 5.5
-thrust_max: 12.5
+roll_max: deg(20.0)
+pitch_max: deg(20.0)
+thrust_min: 6.8
+thrust_max: 12.8
 
 K_yaw: 1.5
 

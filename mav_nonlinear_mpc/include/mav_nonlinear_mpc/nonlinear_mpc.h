@@ -33,6 +33,7 @@
 
 #include <ros/ros.h>
 #include <Eigen/Eigen>
+#include <sensor_msgs/BatteryState.h>
 #include <mav_msgs/conversions.h>
 #include <mav_msgs/eigen_mav_msgs.h>
 #include <stdio.h>
@@ -48,187 +49,192 @@ ACADOworkspace acadoWorkspace;
 
 namespace mav_control {
 
-lapack_logical select_lhp(const double *real, const double *imag)
-{
-  return *real < 0.0;
-}
-
-class NonlinearModelPredictiveControl
-{
- public:
-  NonlinearModelPredictiveControl(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh);
-  ~NonlinearModelPredictiveControl();
-
-  // Dynamic parameters
-  void setPositionPenality(const Eigen::Vector3d& q_position)
-  {
-    q_position_ = q_position;
-  }
-  void setVelocityPenality(const Eigen::Vector3d& q_velocity)
-  {
-    q_velocity_ = q_velocity;
-  }
-  void setAttitudePenality(const Eigen::Vector2d& q_attitude)
-  {
-    q_attitude_ = q_attitude;
-  }
-  void setCommandPenality(const Eigen::Vector3d& r_command)
-  {
-    r_command_ = r_command;
-  }
-  void setYawGain(double K_yaw)
-  {
-    K_yaw_ = K_yaw;
+  lapack_logical select_lhp(const double *real, const double *imag) {
+    return *real < 0.0;
   }
 
-  void setAltitudeIntratorGain(double Ki_altitude)
-  {
-    Ki_altitude_ = Ki_altitude;
-  }
+  class NonlinearModelPredictiveControl {
+  public:
+    NonlinearModelPredictiveControl(const ros::NodeHandle &nh, const ros::NodeHandle &private_nh);
 
-  void setXYIntratorGain(double Ki_xy)
-  {
-    Ki_xy_ = Ki_xy;
-  }
+    ~NonlinearModelPredictiveControl();
 
-  void setEnableOffsetFree(bool enable_offset_free)
-  {
-    enable_offset_free_ = enable_offset_free;
-  }
+    // Dynamic parameters
+    void setPositionPenality(const Eigen::Vector3d &q_position) {
+      q_position_ = q_position;
+    }
 
-  void setEnableIntegrator(bool enable_integrator)
-  {
-    enable_integrator_ = enable_integrator;
-  }
+    void setVelocityPenality(const Eigen::Vector3d &q_velocity) {
+      q_velocity_ = q_velocity;
+    }
 
-  void setControlLimits(const Eigen::VectorXd& control_limits)
-  {
-    //roll_max, pitch_max, yaw_rate_max, thrust_min and thrust_max
-    roll_limit_ = control_limits(0);
-    pitch_limit_ = control_limits(1);
-    yaw_rate_limit_ = control_limits(2);
-    thrust_min_ = control_limits(3);
-    thrust_max_ = control_limits(4);
-  }
+    void setAttitudePenality(const Eigen::Vector2d &q_attitude) {
+      q_attitude_ = q_attitude;
+    }
 
-  void applyParameters();
+    void setCommandPenality(const Eigen::Vector3d &r_command) {
+      r_command_ = r_command;
+    }
 
-  double getMass() const
-  {
-    return mass_;
-  }
+    void setYawGain(double K_yaw) {
+      K_yaw_ = K_yaw;
+    }
 
-  // get reference and predicted state
-  bool getCurrentReference(mav_msgs::EigenTrajectoryPoint* reference) const;
-  bool getCurrentReference(mav_msgs::EigenTrajectoryPointDeque* reference) const;
-  bool getPredictedState(mav_msgs::EigenTrajectoryPointDeque* predicted_state) const;
+    void setAltitudeIntratorGain(double Ki_altitude) {
+      Ki_altitude_ = Ki_altitude;
+    }
 
-  // set odom and commands
-  void setOdometry(const mav_msgs::EigenOdometry& odometry);
-  void setCommandTrajectoryPoint(const mav_msgs::EigenTrajectoryPoint& command_trajectory);
-  void setCommandTrajectory(const mav_msgs::EigenTrajectoryPointDeque& command_trajectory);
+    void setXYIntratorGain(double Ki_xy) {
+      Ki_xy_ = Ki_xy;
+    }
 
-  // compute control input
-  void calculateRollPitchYawrateThrustCommand(Eigen::VectorXd * ref_attitude_thrust);
+    void setEnableOffsetFree(bool enable_offset_free) {
+      enable_offset_free_ = enable_offset_free;
+    }
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
- private:
+    void setEnableIntegrator(bool enable_integrator) {
+      enable_integrator_ = enable_integrator;
+    }
 
-  // constants
-  static constexpr double kGravity = 9.8066;
-  static constexpr int kDisturbanceSize = 3;
+    void setControlLimits(const Eigen::VectorXd &control_limits) {
+      //roll_max, pitch_max, yaw_rate_max, thrust_min and thrust_max
+      roll_limit_ = control_limits(0);
+      pitch_limit_ = control_limits(1);
+      yaw_rate_limit_ = control_limits(2);
+      thrust_min_ = control_limits(3);
+      thrust_max_ = control_limits(4);
+    }
 
-  // ros node handles
-  ros::NodeHandle nh_, private_nh_;
+    void applyParameters();
 
-  // reset integrator service
-  ros::ServiceServer reset_integrator_service_server_;
-  bool resetIntegratorServiceCallback(std_srvs::Empty::Request &req,
-                                      std_srvs::Empty::Response &res);
+    double getMass() const {
+      return mass_;
+    }
 
-  // sampling time parameters
-  void initializeParameters();
-  bool initialized_parameters_;
+    // get reference and predicted state
+    bool getCurrentReference(mav_msgs::EigenTrajectoryPoint *reference) const;
 
-  // sampling time parameters
-  double sampling_time_;
-  double prediction_sampling_time_;
+    bool getCurrentReference(mav_msgs::EigenTrajectoryPointDeque *reference) const;
 
-  // system model parameters
-  double mass_;
-  double roll_time_constant_;
-  double roll_gain_;
-  double pitch_time_constant_;
-  double pitch_gain_;
-  Eigen::Vector3d drag_coefficients_;
+    bool getPredictedState(mav_msgs::EigenTrajectoryPointDeque *predicted_state) const;
 
-  // controller parameters
-  // state penalty
-  Eigen::Vector3d q_position_;
-  Eigen::Vector3d q_velocity_;
-  Eigen::Vector2d q_attitude_;
+    // set odom and commands
+    void setOdometry(const mav_msgs::EigenOdometry &odometry);
 
-  // control penalty
-  Eigen::Vector3d r_command_;
+    void setCommandTrajectoryPoint(const mav_msgs::EigenTrajectoryPoint &command_trajectory);
 
-  // yaw P gain
-  double K_yaw_;
+    void setCommandTrajectory(const mav_msgs::EigenTrajectoryPointDeque &command_trajectory);
 
-  // error integrator
-  bool enable_integrator_;
-  double Ki_altitude_;
-  double Ki_xy_;
-  double antiwindup_ball_;
-  Eigen::Vector3d position_error_integration_;
-  double position_error_integration_limit_;
+    // compute control input
+    void calculateRollPitchYawrateThrustCommand(Eigen::VectorXd *ref_attitude_thrust);
 
-  // control input limits
-  double roll_limit_;
-  double pitch_limit_;
-  double yaw_rate_limit_;
-  double thrust_min_;
-  double thrust_max_;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  private:
 
-  // throttle scaling
-  double thrust_k;
-  double thrust_b;
+    // constants
+    static constexpr double kGravity = 9.8066;
+    static constexpr int kDisturbanceSize = 3;
 
-  // reference queue
-  MPCQueue mpc_queue_;
-  Vector3dDeque position_ref_, velocity_ref_, acceleration_ref_;
-  std::deque<double> yaw_ref_, yaw_rate_ref_;
+    // ros node handles
+    ros::NodeHandle nh_, private_nh_;
+    // ros subscribers
+    ros::Subscriber _battery_sub_;
+    // reset integrator service
+    ros::ServiceServer reset_integrator_service_server_;
 
-  // solver matrices
-  Eigen::Matrix<double, ACADO_NY, ACADO_NY> W_;
-  Eigen::Matrix<double, ACADO_NYN, ACADO_NYN> WN_;
-  Eigen::Matrix<double, ACADO_N + 1, ACADO_NX> state_;
-  Eigen::Matrix<double, ACADO_N, ACADO_NU> input_;
-  Eigen::Matrix<double, ACADO_N, ACADO_NY> reference_;
-  Eigen::Matrix<double, 1, ACADO_NYN> referenceN_;
-  Eigen::Matrix<double, ACADO_N + 1, ACADO_NOD> acado_online_data_;
+    bool resetIntegratorServiceCallback(std_srvs::Empty::Request &req,
+                                        std_srvs::Empty::Response &res);
 
-  // disturbance observer
-  bool enable_offset_free_;
-  KFDisturbanceObserver disturbance_observer_;
+    void batteryCallback(const sensor_msgs::BatteryState &bty);
 
-  // commands
-  Eigen::Vector4d command_roll_pitch_yaw_thrust_;
+    // sampling time parameters
+    void initializeParameters();
 
-  // debug info
-  bool verbose_;
-  double solve_time_average_;
+    bool initialized_parameters_;
 
-  // most recent odometry information
-  mav_msgs::EigenOdometry odometry_;
-  bool received_first_odometry_;
+    // sampling time parameters
+    double sampling_time_;
+    double prediction_sampling_time_;
 
-  // initilize solver
-  void initializeAcadoSolver(Eigen::VectorXd x0);
+    // system model parameters
+    double mass_;
+    double roll_time_constant_;
+    double roll_gain_;
+    double pitch_time_constant_;
+    double pitch_gain_;
+    Eigen::Vector3d drag_coefficients_;
 
-  // solve continuous time Riccati equation
-  Eigen::MatrixXd solveCARE(Eigen::MatrixXd Q, Eigen::MatrixXd R);
+    // system model parameters
+    double volt = 11.5;
+    double volt_max = 11.5;
+    // controller parameters
+    // state penalty
+    Eigen::Vector3d q_position_;
+    Eigen::Vector3d q_velocity_;
+    Eigen::Vector2d q_attitude_;
 
-};
+    // control penalty
+    Eigen::Vector3d r_command_;
+
+    // yaw P gain
+    double K_yaw_;
+
+    // error integrator
+    bool enable_integrator_;
+    double Ki_altitude_;
+    double Ki_xy_;
+    double antiwindup_ball_;
+    Eigen::Vector3d position_error_integration_;
+    double position_error_integration_limit_;
+
+    // control input limits
+    double roll_limit_;
+    double pitch_limit_;
+    double yaw_rate_limit_;
+    double thrust_min_;
+    double thrust_max_;
+
+    // throttle scaling
+    double thrust_constant;
+    double thrust_battery;
+    double thrust_cmd;
+
+    // reference queue
+    MPCQueue mpc_queue_;
+    Vector3dDeque position_ref_, velocity_ref_, acceleration_ref_;
+    std::deque<double> yaw_ref_, yaw_rate_ref_;
+
+    // solver matrices
+    Eigen::Matrix<double, ACADO_NY, ACADO_NY> W_;
+    Eigen::Matrix<double, ACADO_NYN, ACADO_NYN> WN_;
+    Eigen::Matrix<double, ACADO_N + 1, ACADO_NX> state_;
+    Eigen::Matrix<double, ACADO_N, ACADO_NU> input_;
+    Eigen::Matrix<double, ACADO_N, ACADO_NY> reference_;
+    Eigen::Matrix<double, 1, ACADO_NYN> referenceN_;
+    Eigen::Matrix<double, ACADO_N + 1, ACADO_NOD> acado_online_data_;
+
+    // disturbance observer
+    bool enable_offset_free_;
+    KFDisturbanceObserver disturbance_observer_;
+
+    // commands
+    Eigen::Vector4d command_roll_pitch_yaw_thrust_;
+
+    // debug info
+    bool verbose_;
+    double solve_time_average_;
+
+    // most recent odometry information
+    mav_msgs::EigenOdometry odometry_;
+    bool received_first_odometry_;
+
+    // initilize solver
+    void initializeAcadoSolver(Eigen::VectorXd x0);
+
+    // solve continuous time Riccati equation
+    Eigen::MatrixXd solveCARE(Eigen::MatrixXd Q, Eigen::MatrixXd R);
+
+  };
 
 }
 

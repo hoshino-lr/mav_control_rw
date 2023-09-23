@@ -55,56 +55,54 @@
 
 namespace mav_control {
 
-class NonLinearModelPredictiveControllerNode : public mav_control_interface::PositionControllerInterface
-{
- public:
-  NonLinearModelPredictiveControllerNode(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh);
-  ~NonLinearModelPredictiveControllerNode();
+  class NonLinearModelPredictiveControllerNode : public mav_control_interface::PositionControllerInterface {
+  public:
+    NonLinearModelPredictiveControllerNode(const ros::NodeHandle &nh, const ros::NodeHandle &private_nh);
 
-  void InitializeParams();
+    ~NonLinearModelPredictiveControllerNode();
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
- private:
-  NonlinearModelPredictiveControl nonlinear_mpc_;
+    void InitializeParams();
 
-  dynamic_reconfigure::Server<mav_nonlinear_mpc::NonLinearMPCConfig> controller_dyn_config_server_;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  private:
+    NonlinearModelPredictiveControl nonlinear_mpc_;
 
-  void ControllerDynConfigCallback(mav_nonlinear_mpc::NonLinearMPCConfig &config, uint32_t level);
+    dynamic_reconfigure::Server<mav_nonlinear_mpc::NonLinearMPCConfig> controller_dyn_config_server_;
 
-  virtual std::string getName() const
-  {
-    return std::string("nonlinear_model_predictive_controller");
-  }
+    void ControllerDynConfigCallback(mav_nonlinear_mpc::NonLinearMPCConfig &config, uint32_t level);
 
-  virtual bool getUseAttitudeQuaternionCommand() const
-  {
-    return false;
-  }
+    virtual std::string getName() const {
+      return std::string("nonlinear_model_predictive_controller");
+    }
 
-  virtual double getMass() const {
-    return nonlinear_mpc_.getMass();
-  }
+    virtual bool getUseAttitudeQuaternionCommand() const {
+      return false;
+    }
 
-  virtual bool setReference(const mav_msgs::EigenTrajectoryPoint& reference);
+    virtual double getMass() const {
+      return nonlinear_mpc_.getMass();
+    }
 
-  virtual bool setReferenceArray(const mav_msgs::EigenTrajectoryPointDeque& reference_array);
+    virtual bool setReference(const mav_msgs::EigenTrajectoryPoint &reference);
 
-  virtual bool setOdometry(const mav_msgs::EigenOdometry& odometry);
+    virtual bool setReferenceArray(const mav_msgs::EigenTrajectoryPointDeque &reference_array);
 
-  virtual bool calculateRollPitchYawrateThrustCommand(
-      mav_msgs::EigenRollPitchYawrateThrust* attitude_thrust_command);
+    virtual bool setOdometry(const mav_msgs::EigenOdometry &odometry);
 
-  virtual bool calculateAttitudeThrustCommand(mav_msgs::EigenAttitudeThrust* attitude_thrust_command);
+    virtual bool calculateRollPitchYawrateThrustCommand(
+        mav_msgs::EigenRollPitchYawrateThrust *attitude_thrust_command);
 
-  virtual bool getCurrentReference(mav_msgs::EigenTrajectoryPoint* reference) const;
+    virtual bool calculateAttitudeThrustCommand(mav_msgs::EigenAttitudeThrust *attitude_thrust_command);
 
-  virtual bool getCurrentReference(mav_msgs::EigenTrajectoryPointDeque* reference) const;
+    virtual bool getCurrentReference(mav_msgs::EigenTrajectoryPoint *reference) const;
 
-  virtual bool getPredictedState(mav_msgs::EigenTrajectoryPointDeque* predicted_state) const;
+    virtual bool getCurrentReference(mav_msgs::EigenTrajectoryPointDeque *reference) const;
 
-  void uavStatusCallback(const mav_msgs::StatusConstPtr& msg);
+    virtual bool getPredictedState(mav_msgs::EigenTrajectoryPointDeque *predicted_state) const;
 
-};
+    void uavStatusCallback(const mav_msgs::StatusConstPtr &msg);
+
+  };
 
 }
 
