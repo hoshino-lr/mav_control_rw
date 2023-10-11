@@ -431,7 +431,9 @@ namespace mav_control {
     if (yaw_rate_cmd < -yaw_rate_limit_) {
       yaw_rate_cmd = -yaw_rate_limit_;
     }
-    double thrust_output = (thrust_ref * thrust_cmd + volt * thrust_battery + thrust_constant) / (cos(roll_ref) * cos(pitch_ref));
+    // 下面是根据无人机期望姿态进行分配
+//    double thrust_output = (thrust_ref * thrust_cmd + volt * thrust_battery + thrust_constant) / (cos(roll_ref) * cos(pitch_ref));
+    double thrust_output = (thrust_ref * thrust_cmd + volt * thrust_battery + thrust_constant) / (cos(current_rpy.x()) * cos(current_rpy.y()));
 //  *ref_attitude_thrust = Eigen::Vector4d(roll_ref, pitch_ref, yaw_rate_cmd, mass_ * thrust_ref);
     if (current_z > 0.2) {
       *ref_attitude_thrust << roll_ref, pitch_ref, 0, yaw_rate_cmd, thrust_output;
