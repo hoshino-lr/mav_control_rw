@@ -11,15 +11,15 @@
 #==================================================================================================================
 
 ## Controller Parameters:
-mass: 0.989
+mass: 1.00
 roll_time_constant: 0.08
 roll_gain: 1.05
-pitch_time_constant: 0.232017
-pitch_gain: 1.043893
+pitch_time_constant: 0.08
+pitch_gain: 1.05
 linear_drag_coefficients: [0.02, 0.02, 0]
-thrust_cmd: 0.0377
-thrust_battery: -0.03632
-thrust_constant: 0.3927
+thrust_cmd: 0.04106
+thrust_battery: -0.07545
+thrust_constant: 0.8557
 # dynamic config default values:
 q_x : 80
 q_y : 80
