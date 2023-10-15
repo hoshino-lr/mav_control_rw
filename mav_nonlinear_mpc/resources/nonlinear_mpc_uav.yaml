@@ -12,8 +12,8 @@
 
 ## Controller Parameters:
 mass: 0.989
-roll_time_constant: 0.08
-roll_gain: 1.05
+roll_time_constant: 0.171804
+roll_gain: 1.028143
 pitch_time_constant: 0.232017
 pitch_gain: 1.043893
 linear_drag_coefficients: [0.02, 0.02, 0]
@@ -36,10 +36,10 @@ r_roll  : 50
 r_pitch : 50
 r_thrust : 1
 
-roll_max: deg(20.0)
-pitch_max: deg(20.0)
-thrust_min: 6.8
-thrust_max: 12.8
+roll_max: deg(16.0)
+pitch_max: deg(16.0)
+thrust_min: 6.6
+thrust_max: 13.0
 
 K_yaw: 1.5
 
