@@ -131,7 +131,7 @@ void MPCQueue::insertReferenceTrajectory(const mav_msgs::EigenTrajectoryPointDeq
   linearInterpolateTrajectory(queue, interpolated_queue);
 
   {
-    // Two options: if time is 0 or < than queue start time, shrink the queue to
+    // Two options: if time is 0 or < thhan queue start time, shrink the queue to
     // minimum and insert.
     // If time is > queue start time, either insert at the correct position or append.
     double commanded_time_from_start = static_cast<double>(

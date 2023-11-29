@@ -17,7 +17,9 @@ roll_gain: 0.75
 pitch_time_constant: 0.259
 pitch_gain: 0.78
 linear_drag_coefficients: [0.01, 0.01, 0]
-
+thrust_cmd: 0.0377
+thrust_battery: -0.03632
+thrust_constant: 0.3927
 # dynamic config default values:
 q_x : 80
 q_y : 80

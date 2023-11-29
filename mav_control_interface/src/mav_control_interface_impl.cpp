@@ -47,12 +47,12 @@ MavControlInterfaceImpl::MavControlInterfaceImpl(ros::NodeHandle& nh, ros::NodeH
       mav_msgs::default_topics::COMMAND_TRAJECTORY, 1,
       &MavControlInterfaceImpl::CommandTrajectoryCallback, this);
 
-//  odometry_subscriber_ = nh_.subscribe(mav_msgs::default_topics::ODOMETRY, 1,
-//                                       &MavControlInterfaceImpl::OdometryCallback, this,
-//                                       ros::TransportHints().tcpNoDelay());
-  odometry_subscriber_ = nh_.subscribe("/px4/vision_odom", 1,
-                                         &MavControlInterfaceImpl::OdometryCallback, this,
-                                        ros::TransportHints().tcpNoDelay());
+  odometry_subscriber_ = nh_.subscribe(mav_msgs::default_topics::ODOMETRY, 1,
+                                       &MavControlInterfaceImpl::OdometryCallback, this,
+                                       ros::TransportHints().tcpNoDelay());
+//  odometry_subscriber_ = nh_.subscribe("/px4/vision_odom", 1,
+//                                         &MavControlInterfaceImpl::OdometryCallback, this,
+//                                        ros::TransportHints().tcpNoDelay());
   rc_interface_->registerUpdatedCallback(&MavControlInterfaceImpl::RcUpdatedCallback, this);
 
   takeoff_server_ = nh.advertiseService("takeoff", &MavControlInterfaceImpl::TakeoffCallback, this);
@@ -132,7 +132,7 @@ void MavControlInterfaceImpl::OdometryCallback(const nav_msgs::OdometryConstPtr&
   mav_msgs::EigenOdometry odometry;
   mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
   // Stamp odometry upon reception to be robust against timestamps "in the future".
-  odometry.timestamp_ns = ros::Time::now().toNSec();
+  odometry.timestamp_ns = ros::Time::now().toNSec(); // TODO del it
   state_machine_->process_event(state_machine::OdometryUpdate(odometry));
 }
 

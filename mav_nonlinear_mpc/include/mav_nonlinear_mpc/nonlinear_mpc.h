@@ -165,8 +165,8 @@ namespace mav_control {
     Eigen::Vector3d drag_coefficients_;
 
     // system model parameters
-    double volt = 11.5;
-    double volt_max = 11.5;
+    double volt = 15.5;
+    double volt_max = 16;
     // controller parameters
     // state penalty
     Eigen::Vector3d q_position_;
