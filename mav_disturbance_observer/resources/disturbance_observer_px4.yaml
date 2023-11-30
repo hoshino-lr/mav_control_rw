@@ -30,12 +30,12 @@ KF_observer:
 
   #model from system identification (2nd order attitude model)
   drag_coefficients : [ 0.020000 , 0.020000 , 0]
-  roll_omega : 8.947470
-  roll_damping : 0.562861
-  roll_gain : 0.983368
-  pitch_omega : 8.599936
-  pitch_damping : 0.537173
-  pitch_gain : 0.981318
+  roll_omega : 2.504081
+  roll_damping : 1.00
+  roll_gain : 1.061061
+  pitch_omega : 4.312628
+  pitch_damping : 1.0000
+  pitch_gain : 0.997736
   yaw_omega : 5.00000
   yaw_damping : 0.950000
   yaw_gain : 1.000000
